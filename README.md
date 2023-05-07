@@ -1,1 +1,2 @@
 # CS_143
+Simple sudoku game that generates a random 9X9 board and fills in 25 of the values at random. The solve_board function is a back tracking algorithm similar to that of the one covered in class. This will try solving the given board using the algorithm. 
