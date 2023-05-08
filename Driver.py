@@ -20,68 +20,26 @@ class SudokuBoard:
 
 
 def generate_board():
-    # Create a solved board
-    board = [[(i*3 + i//3 + j) % 9 + 1 for j in range(9)] for i in range(9)]
-
-    # Shuffle the board while maintaining the rules of Sudoku
-    for i in range(81):
-        row1, col1 = divmod(i, 9)
-        row2 = random.randint(0, 8)
-        col2 = random.randint(0, 8)
-        board[row1][col1], board[row2][col2] = board[row2][col2], board[row1][col1]
-        if not is_valid_move(board, row1, col1, board[row1][col1]) or not is_valid_move(board, row2, col2, board[row2][col2]):
-            board[row1][col1], board[row2][col2] = board[row2][col2], board[row1][col1]
-
-    # Remove cells to simulate Medium difficulty mode
-    for i in range(81):
-        row, col = divmod(i, 9)
-        val = board[row][col]
-        board[row][col] = 0
-        if not is_unique_solution(board):
-            board[row][col] = val
-
-    # Create the Sudoku board object and return it
+    board = [[0 for _ in range(9)] for _ in range(9)]
+    fill_board(board)
+    replace_tiles(board)
     return SudokuBoard(board)
 
-
-def is_unique_solution(board):
-    # Find an empty cell to fill
+def fill_board(board):
     row, col = find_empty_cell(board)
-    if row == -1 and col == -1:
-        # The board is solved
+    if row == -1:
         return True
 
-    # Try each possible value in the empty cell
-    for val in range(1, 10):
-        if is_valid_move(board, row, col, val):
-            board[row][col] = val
-            if not is_unique_solution(board):
-                board[row][col] = 0
-                return False
+    numbers = list(range(1, 10))
+    random.shuffle(numbers)
+    for num in numbers:
+        if is_valid_move(board, row, col, num):
+            board[row][col] = num
+            if fill_board(board):
+                return True
             board[row][col] = 0
 
-    return True
-
-
-def solve_board(board, count):
-    # Find an empty cell to fill
-    row, col = find_empty_cell(board)
-    if row == -1 and col == -1:
-        # The board is solved
-        return True, count
-
-    # Try each possible value in the empty cell
-    for val in range(1, 10):
-        if is_valid_move(board, row, col, val):
-            board[row][col] = val
-            if solve_board(board, count):
-                return True, count
-            board[row][col] = 0
-
-    # Backtrack
-    count += 1
-    return False, count
-
+    return False
 
 def find_empty_cell(board):
     for i in range(len(board)):
@@ -109,21 +67,45 @@ def is_valid_move(board, row, col, val):
 
     return True
 
+def replace_tiles(board):
+    count = 0
+    while count < 56:
+        row = random.randint(0, 8)
+        col = random.randint(0, 8)
+        if board[row][col] != 0:
+            board[row][col] = 0
+            count += 1
+
+def solve_board(board, count):
+    row, col = find_empty_cell(board)
+    if row == -1:
+        return True, count
+
+    for num in range(1, 10):
+        if is_valid_move(board, row, col, num):
+            board[row][col] = num
+            solved, count = solve_board(board, count+1)
+            if solved:
+                return True, count
+            board[row][col] = 0
+
+    return False, count
+
 
 def main():
     board = generate_board()
-    # print("Sudoku Board:")
-    # board.print_board()
+    print("Sudoku Board:")
+    board.print_board()
 
-    # start_time = time.time()
-    # solved, count = solve_board(board.board, 0)
-    # end_time = time.time()
+    start_time = time.time()
+    solved, count = solve_board(board.board, 0)
+    end_time = time.time()
 
-    # if solved:
-    #     print("\nSolved Sudoku Board:")
-    #     board.print_board()
-    #     print(f"\nTime taken to solve the board: {round(end_time - start_time, 2)} seconds")
-    #     print(f"Total number of moves: {count}")
+    if solved:
+        print("\nSolved Sudoku Board:")
+        board.print_board()
+        print(f"\nTime taken to solve the board: {round(end_time - start_time, 2)} seconds")
+        print(f"Total number of moves: {count}")
 
 if __name__ == '__main__':
     main()
